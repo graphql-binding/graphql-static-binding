@@ -1,0 +1,25 @@
+{
+  "name": "graphql-static-binding",
+  "version": "0.1.0",
+  "description": "Generate static binding files for a GraphQL schema",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "scripts": {
+    "prepublish": "npm run build",
+    "start": "ts-node --inspect src/index.ts",
+    "build": "tsc -d"
+  },
+  "keywords": [
+    "graphql"
+  ],
+  "author": "Kim Brandwijk <kim.brandwijk@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "graphql": "^0.12.3"
+  },
+  "devDependencies": {
+    "@types/node": "^8.5.1",
+    "ts-node": "^4.0.2",
+    "typescript": "^2.6.2"
+  }
+}
