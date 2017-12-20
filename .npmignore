@@ -1,2 +1,3 @@
 src
 .circleci
+dist/test.*

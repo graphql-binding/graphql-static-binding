@@ -7,7 +7,7 @@
   "scripts": {
     "prepublish": "npm run build",
     "start": "ts-node --inspect src/index.ts",
-    "build": "tsc -d"
+    "build": "rm -rf dist && tsc -d"
   },
   "keywords": [
     "graphql"
