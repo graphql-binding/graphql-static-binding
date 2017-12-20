@@ -40,10 +40,6 @@ const { sign } = require('jsonwebtoken');
 const schemaCache = new SchemaCache()
 
 class BaseBinding {
-  remoteSchema
-  fragmentReplacements
-  graphqlClient
-
   constructor({
     typeDefs,
     endpoint,
@@ -101,27 +97,32 @@ ${schema}\``
 
 
 function renderMainMethod(queryType: GraphQLObjectType, mutationType?: GraphQLObjectType | null, subscriptionType?: GraphQLObjectType | null) {
-  return `export class Binding extends BaseBinding {
+  return `module.exports.Binding = class Binding extends BaseBinding {
   
   constructor({ endpoint, secret, fragmentReplacements}) {
     super({ typeDefs, endpoint, secret, fragmentReplacements});
+
+    var self = this
+    this.query = {
+${renderMainMethodFields('query', queryType.getFields())}
+    }${mutationType ? `
+      
+    this.mutation = {
+${renderMainMethodFields('mutation', mutationType.getFields())}
+    }`: ''}
   }
   
-  query = {
-${renderMainMethodFields('query', queryType.getFields())}
-  }${mutationType ? `
-
-  mutation = {
-${renderMainMethodFields('mutation', mutationType.getFields())}
-  }`: ''}
+  delegate(operation, field, args, info) {
+    return super.delegate(operation, field, args, info)
+  }
 }`
 }
 
 function renderMainMethodFields(operation: string, fields: GraphQLFieldMap<any, any>): string {
   return Object.keys(fields).map(f => {
     const field = fields[f]
-    return `    ${field.name}(args, info) { 
-      return super.delegate('${operation}', '${field.name}', args, info)
-    }`
+    return `      ${field.name}(args, info) { 
+        return self.delegate('${operation}', '${field.name}', args, info)
+      }`
   }).join(',\n')
 }
