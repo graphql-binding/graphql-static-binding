@@ -18,11 +18,14 @@ export function generateCode(schema: string, generator: Generator): string {
       .filter(typeName => ast.getSubscriptionType() ? typeName !== ast.getSubscriptionType()!.name : true)
       .sort((a,b) => ast.getType(a).constructor.name < ast.getType(b).constructor.name ? -1 : 1)
     
+    // Special case 4: header
+    const generatedClass = [generator.Header(schema)]
+
     // Process all types
-    const generatedClass = typeNames.map(typeName => {
+    generatedClass.push(...typeNames.map(typeName => {
       const type = ast.getTypeMap()[typeName]
       return generator[type.constructor.name] ? generator[type.constructor.name](type) : null
-    })
+    }))
 
     // Special case 1: generate schema interface
     if (generator.SchemaType) {

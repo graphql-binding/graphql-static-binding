@@ -30,6 +30,7 @@ export const generator: Generator = {
   RootType: renderRootType,
   SchemaType: renderSchemaInterface,
   Main: renderMainMethod,
+  Header: renderHeader,
 }
 
 const scalarMapping = {
@@ -40,24 +41,112 @@ const scalarMapping = {
   Boolean: 'boolean'
 }
 
+function renderHeader(schema: string): string {
+  return `import { FragmentReplacements } from 'graphcool-binding/dist/src/extractFragmentReplacements';
+import { GraphcoolLink } from 'graphcool-binding/dist/src/GraphcoolLink';
+import { buildFragmentInfo, buildTypeLevelInfo } from 'graphcool-binding/dist/src/prepareInfo';
+import { GraphQLResolveInfo, GraphQLSchema } from 'graphql';
+import { GraphQLClient } from 'graphql-request';
+import { SchemaCache } from 'graphql-schema-cache';
+import { delegateToSchema } from 'graphql-tools';
+import { sign } from 'jsonwebtoken';
+
+// -------------------
+// This should be in graphcool-binding
+interface BindingOptions {
+  fragmentReplacements?: FragmentReplacements
+  endpoint: string
+  secret: string
+}
+
+interface BaseBindingOptions extends BindingOptions {
+  typeDefs: string
+}
+
+const schemaCache = new SchemaCache()
+
+class BaseBinding {
+  private remoteSchema: GraphQLSchema
+  private fragmentReplacements: FragmentReplacements
+  private graphqlClient: GraphQLClient
+
+  constructor({
+    typeDefs,
+    endpoint,
+    secret,
+    fragmentReplacements} : BaseBindingOptions) {
+    
+    fragmentReplacements = fragmentReplacements || {}
+
+    const token = sign({}, secret)
+    const link = new GraphcoolLink(endpoint, token)
+
+    this.remoteSchema = schemaCache.makeExecutableSchema({
+      link,
+      typeDefs,
+      key: endpoint,
+    })
+
+    this.fragmentReplacements = fragmentReplacements
+
+    this.graphqlClient = new GraphQLClient(endpoint, {
+      headers: { Authorization: \`Bearer \${token}\` },
+    })
+  }
+
+  delegate<T>(operation: 'query' | 'mutation', prop: string, args, info?: GraphQLResolveInfo | string): Promise<T> {
+    if (!info) {
+      info = buildTypeLevelInfo(prop, this.remoteSchema, operation)
+    } else if (typeof info === 'string') {
+      info = buildFragmentInfo(prop, this.remoteSchema, operation, info)
+    }
+
+    return delegateToSchema(
+      this.remoteSchema,
+      this.fragmentReplacements,
+      operation,
+      prop,
+      args || {},
+      {},
+      info,
+    )
+  }
+
+  async request<T = any>(
+    query: string,
+    variables?: { [key: string]: any },
+  ): Promise<T> {
+    return this.graphqlClient.request<T>(query, variables)
+  }
+}
+// -------------------
+
+const typeDefs = \`
+${schema}\``
+}
+
 function renderMainMethod(queryType: GraphQLObjectType, mutationType?: GraphQLObjectType | null, subscriptionType?: GraphQLObjectType | null) {
-  return `export const binding: Schema = {
-  query: {
-${renderMainMethodFields(queryType.getFields())}
-  }${mutationType ? `,
-  mutation: {
-${renderMainMethodFields(mutationType.getFields())}
-  }`: ''}${subscriptionType ? `,
-  subscription: {
-${renderMainMethodFields(subscriptionType.getFields())}
+  return `export class Binding extends BaseBinding {
+  
+  constructor({ endpoint, secret, fragmentReplacements} : BindingOptions) {
+    super({ typeDefs, endpoint, secret, fragmentReplacements});
+  }
+  
+  query: Query = {
+${renderMainMethodFields('query', queryType.getFields())}
+  }${mutationType ? `
+
+  mutation: Mutation = {
+${renderMainMethodFields('mutation', mutationType.getFields())}
   }`: ''}
 }`
 }
 
-function renderMainMethodFields(fields: GraphQLFieldMap<any, any>): string {
+
+function renderMainMethodFields(operation: string, fields: GraphQLFieldMap<any, any>): string {
   return Object.keys(fields).map(f => {
     const field = fields[f]
-    return `    ${field.name}: (args, info): ${renderFieldType(field.type)}${!isNonNullType(field.type) ? ' | null' : ''} => { return /* TODO: Get actual implementation here from graphql-binding */ }`
+    return `    ${field.name}: (args, info): Promise<${renderFieldType(field.type)}${!isNonNullType(field.type) ? ' | null' : ''}> => super.delegate('${operation}', '${field.name}', args, info)`
   }).join(',\n')
 }
 
@@ -77,7 +166,7 @@ ${type.getValues().map(e => `  ${e.name} = '${e.value}'`).join(',\n')}
 function renderRootType(type: GraphQLObjectType): string {
   const fieldDefinition = Object.keys(type.getFields()).map(f => {
     const field = type.getFields()[f]
-    return `  ${field.name}: (args: {${field.args.length > 0 ? ' ': ''}${field.args.map(f => `${renderFieldName(f)}: ${renderFieldType(f.type)}`).join(', ')}${field.args.length > 0 ? ' ': ''}}, info: any) => ${renderFieldType(field.type)}${!isNonNullType(field.type) ? ' | null' : ''}`
+    return `  ${field.name}: (args: {${field.args.length > 0 ? ' ': ''}${field.args.map(f => `${renderFieldName(f)}: ${renderFieldType(f.type)}`).join(', ')}${field.args.length > 0 ? ' ': ''}}, info?: GraphQLResolveInfo | string) => Promise<${renderFieldType(field.type)}${!isNonNullType(field.type) ? ' | null' : ''}>`
   }).join('\n')
 
   return renderInterfaceWrapper(type.name, type.description, type.getInterfaces(), fieldDefinition)

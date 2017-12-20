@@ -2,6 +2,7 @@ import { GraphQLObjectType, GraphQLUnionType, GraphQLInputObjectType, GraphQLSca
 
 export interface Generator {
     Main: (queryType: GraphQLObjectType, mutationType?: GraphQLObjectType | null, subscriptionType?: GraphQLObjectType | null) => string,
+    Header: (schema: string) => string,
     SchemaType?: (queryType: GraphQLObjectType, mutationType?: GraphQLObjectType | null, subscriptionType?: GraphQLObjectType | null) => string,
     RootType?: (type: GraphQLObjectType) => string,
     GraphQLUnionType?: (type: GraphQLUnionType) => string,

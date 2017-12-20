@@ -22,6 +22,7 @@ import { Generator } from '../types'
 
 export const generator: Generator = {
   Main: renderMainMethod,
+  Header: () => '',
 }
 
 function renderMainMethod(queryType: GraphQLObjectType, mutationType?: GraphQLObjectType | null, subscriptionType?: GraphQLObjectType | null) {
