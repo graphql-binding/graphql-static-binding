@@ -22,28 +22,106 @@ import { Generator } from '../types'
 
 export const generator: Generator = {
   Main: renderMainMethod,
-  Header: () => '',
+  Header: renderHeader,
 }
 
+function renderHeader(schema: string): string {
+  return `const { FragmentReplacements } = require('graphcool-binding/dist/src/extractFragmentReplacements');
+const { GraphcoolLink } = require('graphcool-binding/dist/src/GraphcoolLink');
+const { buildFragmentInfo, buildTypeLevelInfo } = require('graphcool-binding/dist/src/prepareInfo');
+const { GraphQLResolveInfo, GraphQLSchema } = require('graphql');
+const { GraphQLClient } = require('graphql-request');
+const { SchemaCache } = require('graphql-schema-cache');
+const { delegateToSchema } = require('graphql-tools');
+const { sign } = require('jsonwebtoken');
+
+// -------------------
+// This should be in graphcool-binding
+const schemaCache = new SchemaCache()
+
+class BaseBinding {
+  remoteSchema
+  fragmentReplacements
+  graphqlClient
+
+  constructor({
+    typeDefs,
+    endpoint,
+    secret,
+    fragmentReplacements}) {
+    
+    fragmentReplacements = fragmentReplacements || {}
+
+    const token = sign({}, secret)
+    const link = new GraphcoolLink(endpoint, token)
+
+    this.remoteSchema = schemaCache.makeExecutableSchema({
+      link,
+      typeDefs,
+      key: endpoint,
+    })
+
+    this.fragmentReplacements = fragmentReplacements
+
+    this.graphqlClient = new GraphQLClient(endpoint, {
+      headers: { Authorization: \`Bearer \${token}\` },
+    })
+  }
+
+  delegate(operation, prop, args, info) {
+    if (!info) {
+      info = buildTypeLevelInfo(prop, this.remoteSchema, operation)
+    } else if (typeof info === 'string') {
+      info = buildFragmentInfo(prop, this.remoteSchema, operation, info)
+    }
+
+    return delegateToSchema(
+      this.remoteSchema,
+      this.fragmentReplacements,
+      operation,
+      prop,
+      args || {},
+      {},
+      info,
+    )
+  }
+
+  async request(
+    query,
+    variables
+  ) {
+    return this.graphqlClient.request(query, variables)
+  }
+}
+// -------------------
+
+const typeDefs = \`
+${schema}\``
+}
+
+
 function renderMainMethod(queryType: GraphQLObjectType, mutationType?: GraphQLObjectType | null, subscriptionType?: GraphQLObjectType | null) {
-  return `exports.binding = {
-  query: {
-${renderMainMethodFields(queryType.getFields())}
-  }${mutationType ? `,
-  mutation: {
-${renderMainMethodFields(mutationType.getFields())}
-  }`: ''}${subscriptionType ? `,
-  subscription: {
-${renderMainMethodFields(subscriptionType.getFields())}
+  return `export class Binding extends BaseBinding {
+  
+  constructor({ endpoint, secret, fragmentReplacements}) {
+    super({ typeDefs, endpoint, secret, fragmentReplacements});
+  }
+  
+  query = {
+${renderMainMethodFields('query', queryType.getFields())}
+  }${mutationType ? `
+
+  mutation = {
+${renderMainMethodFields('mutation', mutationType.getFields())}
   }`: ''}
 }`
 }
 
-function renderMainMethodFields(fields: GraphQLFieldMap<any, any>): string {
+function renderMainMethodFields(operation: string, fields: GraphQLFieldMap<any, any>): string {
   return Object.keys(fields).map(f => {
     const field = fields[f]
     return `    ${field.name}(args, info) { 
-      return /* TODO: Get actual implementation here from graphql-binding */
+      return super.delegate('${operation}', '${field.name}', args, info)
     }`
   }).join(',\n')
 }
