@@ -42,94 +42,18 @@ const scalarMapping = {
 }
 
 function renderHeader(schema: string): string {
-  return `import { FragmentReplacements } from 'graphcool-binding/dist/src/extractFragmentReplacements';
-import { GraphcoolLink } from 'graphcool-binding/dist/src/GraphcoolLink';
-import { buildFragmentInfo, buildTypeLevelInfo } from 'graphcool-binding/dist/src/prepareInfo';
-import { GraphQLResolveInfo, GraphQLSchema } from 'graphql';
-import { GraphQLClient } from 'graphql-request';
-import { SchemaCache } from 'graphql-schema-cache';
-import { delegateToSchema } from 'graphql-tools';
-import { sign } from 'jsonwebtoken';
-
-// -------------------
-// This should be in graphcool-binding
-interface BindingOptions {
-  fragmentReplacements?: FragmentReplacements
-  endpoint: string
-  secret: string
-}
-
-interface BaseBindingOptions extends BindingOptions {
-  typeDefs: string
-}
-
-const schemaCache = new SchemaCache()
-
-class BaseBinding {
-  private remoteSchema: GraphQLSchema
-  private fragmentReplacements: FragmentReplacements
-  private graphqlClient: GraphQLClient
-
-  constructor({
-    typeDefs,
-    endpoint,
-    secret,
-    fragmentReplacements} : BaseBindingOptions) {
-    
-    fragmentReplacements = fragmentReplacements || {}
-
-    const token = sign({}, secret)
-    const link = new GraphcoolLink(endpoint, token)
-
-    this.remoteSchema = schemaCache.makeExecutableSchema({
-      link,
-      typeDefs,
-      key: endpoint,
-    })
-
-    this.fragmentReplacements = fragmentReplacements
-
-    this.graphqlClient = new GraphQLClient(endpoint, {
-      headers: { Authorization: \`Bearer \${token}\` },
-    })
-  }
-
-  delegate<T>(operation: 'query' | 'mutation', prop: string, args, info?: GraphQLResolveInfo | string): Promise<T> {
-    if (!info) {
-      info = buildTypeLevelInfo(prop, this.remoteSchema, operation)
-    } else if (typeof info === 'string') {
-      info = buildFragmentInfo(prop, this.remoteSchema, operation, info)
-    }
-
-    return delegateToSchema(
-      this.remoteSchema,
-      this.fragmentReplacements,
-      operation,
-      prop,
-      args || {},
-      {},
-      info,
-    )
-  }
-
-  async request<T = any>(
-    query: string,
-    variables?: { [key: string]: any },
-  ): Promise<T> {
-    return this.graphqlClient.request<T>(query, variables)
-  }
-}
-// -------------------
+  return `import { Graphcool, BaseGraphcoolOptions } from 'graphcool-binding'
+import { GraphQLResolveInfo } from 'graphql'
 
 const typeDefs = \`
 ${schema}\``
 }
 
 function renderMainMethod(queryType: GraphQLObjectType, mutationType?: GraphQLObjectType | null, subscriptionType?: GraphQLObjectType | null) {
-  return `export class Binding extends BaseBinding {
+  return `export class Binding extends Graphcool {
   
-  constructor({ endpoint, secret, fragmentReplacements} : BindingOptions) {
-    super({ typeDefs, endpoint, secret, fragmentReplacements});
+  constructor({ endpoint, secret, fragmentReplacements, debug }: BaseGraphcoolOptions) {
+    super({ typeDefs, endpoint, secret, fragmentReplacements, debug });
   }
   
   query: Query = {
@@ -146,7 +70,7 @@ ${renderMainMethodFields('mutation', mutationType.getFields())}
 function renderMainMethodFields(operation: string, fields: GraphQLFieldMap<any, any>): string {
   return Object.keys(fields).map(f => {
     const field = fields[f]
-    return `    ${field.name}: (args, info): Promise<${renderFieldType(field.type)}${!isNonNullType(field.type) ? ' | null' : ''}> => super.delegate('${operation}', '${field.name}', args, info)`
+    return `    ${field.name}: (args, info): Promise<${renderFieldType(field.type)}${!isNonNullType(field.type) ? ' | null' : ''}> => super.delegate('${operation}', '${field.name}', args, {}, info)`
   }).join(',\n')
 }
 
@@ -169,7 +93,7 @@ function renderRootType(type: GraphQLObjectType): string {
     return `  ${field.name}: (args: {${field.args.length > 0 ? ' ': ''}${field.args.map(f => `${renderFieldName(f)}: ${renderFieldType(f.type)}`).join(', ')}${field.args.length > 0 ? ' ': ''}}, info?: GraphQLResolveInfo | string) => Promise<${renderFieldType(field.type)}${!isNonNullType(field.type) ? ' | null' : ''}>`
   }).join('\n')
 
-  return renderInterfaceWrapper(type.name, type.description, type.getInterfaces(), fieldDefinition)
+  return renderTypeWrapper(type.name, type.description, fieldDefinition)
 }
 
 function renderUnionType(type: GraphQLUnionType): string {
@@ -214,15 +138,21 @@ ${mutationType ? `  mutation: ${mutationType.name}
 ` : ''}}`
 }
   
-function renderInterfaceWrapper(typeName: string, typeDescription: string, interfaces: GraphQLInterfaceType[],fieldDefinition: string): string {
+function renderInterfaceWrapper(typeName: string, typeDescription: string, interfaces: GraphQLInterfaceType[], fieldDefinition: string): string {
   return `${renderDescription(typeDescription)}export interface ${typeName}${interfaces.length > 0 ? ` extends ${interfaces.map(i => i.name).join(', ')}`: ''} {
+${fieldDefinition}
+}`
+}
+
+function renderTypeWrapper(typeName: string, typeDescription: string, fieldDefinition: string): string {
+  return `${renderDescription(typeDescription)}export type ${typeName} = {
 ${fieldDefinition}
 }`
 }
 
 function renderDescription(description?: string) {
   return `${description ? `/*
-${description}
-*/
+${description.split('\n').map(l => ` * ${l}\n`)}
+ */
 `: ''}`
 }
