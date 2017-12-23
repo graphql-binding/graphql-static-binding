@@ -67,7 +67,7 @@ ${renderMainMethodFields('mutation', mutationType.getFields())}
 }
 
 
-function renderMainMethodFields(operation: string, fields: GraphQLFieldMap<any, any>): string {
+export function renderMainMethodFields(operation: string, fields: GraphQLFieldMap<any, any>): string {
   return Object.keys(fields).map(f => {
     const field = fields[f]
     return `    ${field.name}: (args, info): Promise<${renderFieldType(field.type)}${!isNonNullType(field.type) ? ' | null' : ''}> => super.delegate('${operation}', '${field.name}', args, {}, info)`
