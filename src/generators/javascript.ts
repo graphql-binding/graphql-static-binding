@@ -26,7 +26,7 @@ export const generator: Generator = {
 }
 
 function renderHeader(schema: string): string {
-  return `const { Graphcool, BaseGraphcoolOptions } = require('graphcool-binding')
+  return `const { Graphcool } = require('graphcool-binding')
 const { GraphQLResolveInfo } = require('graphql')
 
 const typeDefs = \`
