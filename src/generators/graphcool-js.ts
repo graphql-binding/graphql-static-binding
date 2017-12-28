@@ -35,7 +35,7 @@ ${schema}\``
 
 
 function renderMainMethod(queryType: GraphQLObjectType, mutationType?: GraphQLObjectType | null, subscriptionType?: GraphQLObjectType | null) {
-  return `module.exports.Binding = class Binding extends Graphcool {
+  return `module.exports.Graphcool = class Binding extends Graphcool {
   
   constructor({ endpoint, secret, fragmentReplacements, debug }) {
     super({ typeDefs, endpoint, secret, fragmentReplacements, debug });

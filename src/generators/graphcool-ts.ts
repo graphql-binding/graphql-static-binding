@@ -42,7 +42,7 @@ const scalarMapping = {
 }
 
 function renderHeader(schema: string): string {
-  return `import { Graphcool, BaseGraphcoolOptions } from 'graphcool-binding'
+  return `import { Graphcool as BaseGraphcool, BaseGraphcoolOptions } from 'graphcool-binding'
 import { GraphQLResolveInfo } from 'graphql'
 
 const typeDefs = \`
@@ -50,7 +50,7 @@ ${schema}\``
 }
 
 function renderMainMethod(queryType: GraphQLObjectType, mutationType?: GraphQLObjectType | null, subscriptionType?: GraphQLObjectType | null) {
-  return `export class Binding extends Graphcool {
+  return `export class Graphcool extends BaseGraphcool {
   
   constructor({ endpoint, secret, fragmentReplacements, debug }: BaseGraphcoolOptions) {
     super({ typeDefs, endpoint, secret, fragmentReplacements, debug });
