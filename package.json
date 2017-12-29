@@ -1,13 +1,13 @@
 {
   "name": "graphql-static-binding",
-  "version": "0.3.1",
+  "version": "0.0.0",
   "description": "Generate static binding files for a GraphQL schema",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
     "prepublish": "npm run build",
-    "start": "ts-node --inspect src/index.ts",
-    "build": "rm -rf dist && tsc -d"
+    "build": "rm -rf dist && tsc -d",
+    "semantic-release": "semantic-release"
   },
   "keywords": [
     "graphql"
@@ -20,6 +20,11 @@
   "devDependencies": {
     "@types/node": "8.5.2",
     "ts-node": "4.1.0",
-    "typescript": "2.6.2"
+    "typescript": "2.6.2",
+    "semantic-release": "^11.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/supergraphql/graphql-static-binding.git"
   }
 }
