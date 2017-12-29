@@ -82,9 +82,8 @@ ${type.description}
 }
 
 function renderEnumType(type: GraphQLEnumType): string {
-  return `${renderDescription(type.description)}export enum ${type.name} {
-${type.getValues().map(e => `  ${e.name} = '${e.value}'`).join(',\n')}
-}`
+  return `${renderDescription(type.description)}export type ${type.name} = 
+${type.getValues().map(e => `  '${e.name}'`).join(' |\n')}`
 }
   
 function renderRootType(type: GraphQLObjectType): string {
