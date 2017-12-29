@@ -136,8 +136,6 @@ function renderInputObjectType(type: GraphQLObjectType | GraphQLInputObjectType 
   return renderInterfaceWrapper(type.name, type.description, interfaces, fieldDefinition)
 }
 
-
-  
 function renderFieldName(field: GraphQLInputField | GraphQLField<any, any>) {
   return `${field.name}${isNonNullType(field.type) ? '' : '?'}`
 }
