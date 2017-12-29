@@ -23,7 +23,7 @@ import { Generator } from '../types'
 export const generator: Generator = {
   GraphQLUnionType: renderUnionType,
   GraphQLObjectType: renderObjectType,
-  GraphQLInputObjectType: renderObjectType,
+  GraphQLInputObjectType: renderInputObjectType,
   GraphQLScalarType: renderScalarType,
   GraphQLEnumType: renderEnumType,
   GraphQLInterfaceType: renderObjectType,
@@ -75,10 +75,19 @@ export function renderMainMethodFields(operation: string, fields: GraphQLFieldMa
 }
 
 function renderScalarType(type: GraphQLScalarType): string {
+  if (type.name === 'ID') { return renderIDType(type)}
   return `${type.description ? `/*
 ${type.description}
 */
 `: ''}export type ${type.name} = ${scalarMapping[type.name] || 'string'}`
+}
+
+function renderIDType(type: GraphQLScalarType): string {
+  return `${type.description ? `/*
+${type.description}
+*/
+`: ''}export type ${type.name}_Input = ${scalarMapping[type.name] || 'string'}
+export type ${type.name}_Output = string`
 }
 
 function renderEnumType(type: GraphQLEnumType): string {
@@ -113,6 +122,20 @@ function renderObjectType(type: GraphQLObjectType | GraphQLInputObjectType | Gra
   return renderInterfaceWrapper(type.name, type.description, interfaces, fieldDefinition)
 }
 
+function renderInputObjectType(type: GraphQLObjectType | GraphQLInputObjectType | GraphQLInterfaceType): string {
+  const fieldDefinition = Object.keys(type.getFields()).map(f => {
+    const field = type.getFields()[f]
+    return `  ${renderFieldName(field)}: ${renderInputFieldType(field.type)}`
+  }).join('\n')
+
+  let interfaces: GraphQLInterfaceType[] = []
+  if (type instanceof GraphQLObjectType) {
+    interfaces = type.getInterfaces()
+  }
+
+  return renderInterfaceWrapper(type.name, type.description, interfaces, fieldDefinition)
+}
+
 
   
 function renderFieldName(field: GraphQLInputField | GraphQLField<any, any>) {
@@ -126,7 +149,17 @@ function renderFieldType(type: GraphQLInputType | GraphQLOutputType) {
   if (isListType(type)) {
     return `Array<${renderFieldType((type as GraphQLWrappingType).ofType)}>`
   }
-  return (type as GraphQLNamedType).name
+  return `${(type as GraphQLNamedType).name}${(type as GraphQLNamedType).name == 'ID' ? '_Output' : ''}`
+}
+
+function renderInputFieldType(type: GraphQLInputType | GraphQLOutputType) {
+  if (isNonNullType(type)) {
+    return renderInputFieldType((type as GraphQLWrappingType).ofType)
+  } 
+  if (isListType(type)) {
+    return `Array<${renderInputFieldType((type as GraphQLWrappingType).ofType)}> | ${renderInputFieldType((type as GraphQLWrappingType).ofType)}`
+  }
+  return `${(type as GraphQLNamedType).name}${(type as GraphQLNamedType).name == 'ID' ? '_Input' : ''}`
 }
   
 function renderSchemaInterface(queryType: GraphQLObjectType, mutationType?: GraphQLObjectType | null, subscriptionType?: GraphQLObjectType | null) {
