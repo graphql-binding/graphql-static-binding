@@ -3,8 +3,9 @@ env:
     - CC_TEST_REPORTER_ID=2a55fd16af882876f659ea436d6ca3f37f763e73453054d1fca47499ba630581
 language: node_js
 cache:
+  yarn: true
   directories:
-    - ~/.npm
+    - node_modules
 notifications:
   email: false
 node_js:

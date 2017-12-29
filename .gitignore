@@ -1,7 +1,6 @@
 node_modules
 dist
 package-lock.json
-yarn.lock
 .vscode
 .nyc_output
 coverage
