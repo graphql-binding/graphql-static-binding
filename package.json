@@ -34,7 +34,9 @@
       "lcov",
       "json"
     ],
-    "all": true
+    "all": true,
+    "sourceMap": true,
+    "instrument": true
   },
   "dependencies": {
     "cucumber-html-reporter": "^3.0.4",
