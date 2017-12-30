@@ -2,7 +2,7 @@ Feature: Graphcool Typescript
 
 Feature for Graphcool Typescript generator
 
-  Scenario: Scenario name
+  Scenario: Query type only
     Given a schema looking like this:
       """
       type Query {
@@ -50,3 +50,9 @@ Feature for Graphcool Typescript generator
         }
       }
       """
+    
+    Scenario: Query and Mutation type
+      Given the schema from 'test/testfiles/input/query-mutation.graphql'
+      And I pick generator 'graphcool-ts'
+      When I run the generator
+      Then I expect the output to match 'test/testfiles/output/query-mutation.ts'

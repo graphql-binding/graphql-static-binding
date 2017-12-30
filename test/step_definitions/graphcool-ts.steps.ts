@@ -1,4 +1,5 @@
-import * as path from 'path'
+import * as fs from 'fs';
+import * as path from 'path';
 import { defineSupportCode, TableDefinition, World } from 'cucumber'
 import { generateCode } from '../../src'
 
@@ -7,16 +8,26 @@ defineSupportCode(function({ Given, When, Then }) {
     this.schema = schema
   })
 
+  Given(/^the schema from '(.*)'$/, function(filename) {
+    this.schema = fs.readFileSync(filename, 'utf-8')
+  })
+
   Given('I pick generator {string}', function(generator) {
     this.generator = generator
   })
 
   When('I run the generator', function() {
     this.result = generateCode(this.schema, this.generator)
-    this.attach(this.result, 'application/typescript');
   })
 
   Then('I expect the output to be:', function(output) {
+    console.assert(normalizeText(this.result) == normalizeText(output), output)
+  })
+
+  Then(/^I expect the output to match '(.*)'$/, function(filename) {
+    const output = fs.readFileSync(filename, 'utf-8')
+    console.log(output)
+    console.log(this.result)
     console.assert(normalizeText(this.result) == normalizeText(output), output)
   })
 })
