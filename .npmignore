@@ -1,6 +1,5 @@
 src
-.circleci
 .travis.yml
 renovate.json
 .codeclimate.yml
-dist/test.*
+test
