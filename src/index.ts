@@ -16,6 +16,7 @@ ${Object.keys(generators).map(k => `'${k}`).join(', ')}`)
     }
 
     const document: DocumentNode = parse(schema, { noLocation: true })
+    
     const ast: GraphQLSchema = buildASTSchema(document)
  
     // Create types
