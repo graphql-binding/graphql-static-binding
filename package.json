@@ -8,7 +8,7 @@
     "prepublish": "npm run build",
     "build": "rm -rf dist && tsc -d",
     "test": "nyc cucumber-js --compiler ts:ts-node/register test/features/ -r test/step_definitions/ -f json:test/report/cucumber_report.json",
-    "posttest": "node test/createReport.js && nyc report --reporter=text-lcov | coveralls && codecov -f coverage/*.json",
+    "posttest": "node test/createReport.js && nyc report --reporter=text-lcov | coveralls && codecov -f coverage/*.json && cat ./coverage/lcov.info | codacy-coverage --language typescript",
     "semantic-release": "semantic-release"
   },
   "keywords": [
@@ -45,6 +45,7 @@
   "devDependencies": {
     "@types/cucumber": "3.1.1",
     "@types/node": "8.5.2",
+    "codacy-coverage": "2.0.3",
     "codecov": "3.0.0",
     "coveralls": "3.0.0",
     "cucumber": "3.2.0",
