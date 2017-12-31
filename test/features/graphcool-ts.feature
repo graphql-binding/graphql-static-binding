@@ -36,7 +36,7 @@ Feature for Graphcool Typescript generator
       }
 
       export type Query = {
-        posts: (args: {}, info?: GraphQLResolveInfo | string) => Promise<Array<String> | null>
+        posts: (args: {}, info?: GraphQLResolveInfo | string) => Promise<String[] | null>
       }
 
       export class Graphcool extends BaseGraphcool {
@@ -46,7 +46,7 @@ Feature for Graphcool Typescript generator
         }
 
         query: Query = {
-          posts: (args, info): Promise<Array<String> | null> => super.delegate('query', 'posts', args, {}, info)
+          posts: (args, info): Promise<String[] | null> => super.delegate('query', 'posts', args, {}, info)
         }
       }
       """

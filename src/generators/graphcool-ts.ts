@@ -187,7 +187,7 @@ function renderFieldType(type: GraphQLInputType | GraphQLOutputType) {
     return renderFieldType((type as GraphQLWrappingType).ofType)
   }
   if (isListType(type)) {
-    return `Array<${renderFieldType((type as GraphQLWrappingType).ofType)}>`
+    return `${renderFieldType((type as GraphQLWrappingType).ofType)}[]`
   }
   return `${(type as GraphQLNamedType).name}${(type as GraphQLNamedType).name === 'ID' ? '_Output' : ''}`
 }
@@ -197,9 +197,8 @@ function renderInputFieldType(type: GraphQLInputType | GraphQLOutputType) {
     return renderInputFieldType((type as GraphQLWrappingType).ofType)
   }
   if (isListType(type)) {
-    return `Array<${renderInputFieldType(
-      (type as GraphQLWrappingType).ofType
-    )}> | ${renderInputFieldType((type as GraphQLWrappingType).ofType)}`
+    const inputType = renderInputFieldType((type as GraphQLWrappingType).ofType)
+    return `${inputType}[] | ${inputType}`
   }
   return `${(type as GraphQLNamedType).name}${(type as GraphQLNamedType).name === 'ID' ? '_Input' : ''}`
 }
