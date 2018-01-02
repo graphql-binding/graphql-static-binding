@@ -11,6 +11,7 @@ import {
   GraphQLNamedType,
   isNonNullType,
   isListType,
+  isWrappingType,
   GraphQLFieldMap,
   GraphQLEnumType,
   GraphQLType,
@@ -58,6 +59,10 @@ function renderMainMethod(
   constructor({ endpoint, secret, fragmentReplacements, debug }: BaseGraphcoolOptions) {
     super({ typeDefs, endpoint, secret, fragmentReplacements, debug });
   }
+
+  exists = {
+${renderExistsFields(queryType.getFields())}
+  }
   
   query: Query = {
 ${renderMainMethodFields('query', queryType.getFields())}
@@ -71,6 +76,27 @@ ${renderMainMethodFields('mutation', mutationType.getFields())}
       : ''
   }
 }`
+}
+
+export function renderExistsFields(fields: GraphQLFieldMap<any, any>) : string {
+  return Object.keys(fields)
+    .map(f => {
+      const field = fields[f]
+      let type = field.type
+      let foundList = false
+      // Traverse the wrapping types (if any)
+      while (isWrappingType(type)) {
+        type = type.ofType
+        // One of those wrappings need to be a GraphQLList for this field to qualify
+        foundList = foundList || isListType(type)
+      }
+      if (foundList) {
+        const whereType = (field.args.find(a => a.name === 'where')!.type as GraphQLInputObjectType).name
+        return `    ${type.name}: (where: ${whereType}): Promise<boolean> => super.existsDelegate('query', '${field.name}', { where }, {}, '{ id }')`
+      }
+    })
+    .filter(f => f)
+    .join(',\n')
 }
 
 export function renderMainMethodFields(operation: string, fields: GraphQLFieldMap<any, any>): string {
