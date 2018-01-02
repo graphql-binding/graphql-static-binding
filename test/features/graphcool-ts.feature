@@ -45,6 +45,10 @@ Feature for Graphcool Typescript generator
           super({ typeDefs, endpoint, secret, fragmentReplacements, debug });
         }
 
+        exists = {
+          
+        }
+
         query: Query = {
           posts: (args, info): Promise<String[] | null> => super.delegate('query', 'posts', args, {}, info)
         }
