@@ -7,8 +7,10 @@
   "scripts": {
     "prepublish": "npm run build",
     "build": "rm -rf dist && tsc -d",
+    "pretest": "npm run build",
     "test": "nyc cucumber-js --compiler ts:ts-node/register test/features/ -r test/step_definitions/ -f json:test/report/cucumber_report.json",
-    "dposttest": "node test/createReport.js && nyc report --reporter=text-lcov | coveralls",
+    "posttest": "node test/createReport.js && nyc report --reporter=text-lcov | coveralls",
+    "vscodetest": "nyc --reporter=lcov --reporter=text-summary cucumber-js --compiler ts:ts-node/register test/features/ -r test/step_definitions/ -f ./test/tap-formatter.js",
     "semantic-release": "semantic-release"
   },
   "keywords": [
@@ -49,7 +51,7 @@
     "coveralls": "3.0.0",
     "cucumber": "3.2.0",
     "nyc": "11.4.1",
-    "semantic-release": "11.1.0",
+    "semantic-release": "12.1.0",
     "ts-node": "4.1.0",
     "typescript": "2.6.2"
   },
