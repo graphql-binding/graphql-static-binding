@@ -19,7 +19,7 @@ import {
 } from 'graphql'
 
 import { Generator } from '../types'
-import { generator as gcgenerator, renderMainMethodFields } from './graphcool-ts'
+import { generator as gcgenerator, renderMainMethodFields, renderMainSubscriptionMethodFields } from './graphcool-ts'
 
 export const generator: Generator = {
   ...gcgenerator,
@@ -45,6 +45,10 @@ ${renderMainMethodFields('query', queryType.getFields())}
 
   mutation: Mutation = {
 ${renderMainMethodFields('mutation', mutationType.getFields())}
+  }`: ''}${subscriptionType ? `
+
+  subscription: Subscription = {
+${renderMainSubscriptionMethodFields(subscriptionType.getFields())}
   }`: ''}
 }`
 }

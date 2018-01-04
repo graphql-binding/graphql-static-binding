@@ -51,6 +51,10 @@ ${renderMainMethodFields('query', queryType.getFields())}
       
     this.mutation = {
 ${renderMainMethodFields('mutation', mutationType.getFields())}
+    }`: ''}${subscriptionType ? `
+      
+    this.subscription = {
+${renderMainSubscriptionMethodFields('mutation', subscriptionType.getFields())}
     }`: ''}
   }
   
@@ -83,11 +87,20 @@ export function renderExistsFields(fields: GraphQLFieldMap<any, any>) : string {
     .join(',\n')
 }
 
-function renderMainMethodFields(operation: string, fields: GraphQLFieldMap<any, any>): string {
+export function renderMainMethodFields(operation: string, fields: GraphQLFieldMap<any, any>): string {
   return Object.keys(fields).map(f => {
     const field = fields[f]
     return `      ${field.name}(args, info) { 
         return self.delegate('${operation}', '${field.name}', args, {}, info)
+      }`
+  }).join(',\n')
+}
+
+export function renderMainSubscriptionMethodFields(operation: string, fields: GraphQLFieldMap<any, any>): string {
+  return Object.keys(fields).map(f => {
+    const field = fields[f]
+    return `      ${field.name}(args, infoOrQuery) { 
+        return self.delegateSubscription('${field.name}', args, infoOrQuery)
       }`
   }).join(',\n')
 }

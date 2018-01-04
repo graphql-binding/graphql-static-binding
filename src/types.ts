@@ -5,6 +5,7 @@ export interface Generator {
     Header: (schema: string) => string,
     SchemaType?: (queryType: GraphQLObjectType, mutationType?: GraphQLObjectType | null, subscriptionType?: GraphQLObjectType | null) => string,
     RootType?: (type: GraphQLObjectType) => string,
+    SubscriptionType?: (type: GraphQLObjectType) => string,
     GraphQLUnionType?: (type: GraphQLUnionType) => string,
     GraphQLInputObjectType?: (type: GraphQLInputObjectType) => string,
     GraphQLObjectType?: (type: GraphQLObjectType) => string,

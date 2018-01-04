@@ -28,6 +28,7 @@ export const generator: Generator = {
   GraphQLEnumType: renderEnumType,
   GraphQLInterfaceType: renderObjectType,
   RootType: renderRootType,
+  SubscriptionType: renderSubscriptionType,
   SchemaType: renderSchemaInterface,
   Main: renderMainMethod,
   Header: renderHeader
@@ -63,7 +64,7 @@ function renderMainMethod(
   exists = {
 ${renderExistsFields(queryType.getFields())}
   }
-  
+
   query: Query = {
 ${renderMainMethodFields('query', queryType.getFields())}
   }${
@@ -72,6 +73,14 @@ ${renderMainMethodFields('query', queryType.getFields())}
 
   mutation: Mutation = {
 ${renderMainMethodFields('mutation', mutationType.getFields())}
+  }`
+      : ''
+  }${
+    subscriptionType
+      ? `
+
+  subscription: Subscription = {
+${renderMainSubscriptionMethodFields(subscriptionType.getFields())}
   }`
       : ''
   }
@@ -106,6 +115,15 @@ export function renderMainMethodFields(operation: string, fields: GraphQLFieldMa
       return `    ${field.name}: (args, info): Promise<${renderFieldType(field.type)}${
         !isNonNullType(field.type) ? ' | null' : ''
       }> => super.delegate('${operation}', '${field.name}', args, {}, info)`
+    })
+    .join(',\n')
+}
+
+export function renderMainSubscriptionMethodFields(fields: GraphQLFieldMap<any, any>): string {
+  return Object.keys(fields)
+    .map(f => {
+      const field = fields[f]
+      return `    ${field.name}: (args, infoOrQuery): Promise<AsyncIterator<${renderFieldType(field.type)}>> => super.delegateSubscription('${field.name}', args, infoOrQuery)`
     })
     .join(',\n')
 }
@@ -155,6 +173,21 @@ function renderRootType(type: GraphQLObjectType): string {
       }}, info?: GraphQLResolveInfo | string) => Promise<${renderFieldType(field.type)}${
         !isNonNullType(field.type) ? ' | null' : ''
       }>`
+    })
+    .join('\n')
+
+  return renderTypeWrapper(type.name, type.description, fieldDefinition)
+}
+
+function renderSubscriptionType(type: GraphQLObjectType): string {
+  const fieldDefinition = Object.keys(type.getFields())
+    .map(f => {
+      const field = type.getFields()[f]
+      return `  ${field.name}: (args: {${field.args.length > 0 ? ' ' : ''}${field.args
+        .map(f => `${renderFieldName(f)}: ${renderFieldType(f.type)}`)
+        .join(', ')}${
+        field.args.length > 0 ? ' ' : ''
+      }}, infoOrQuery?: GraphQLResolveInfo | string) => Promise<AsyncIterator<${renderFieldType(field.type)}>>`
     })
     .join('\n')
 

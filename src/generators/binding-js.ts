@@ -19,6 +19,7 @@ import {
 } from 'graphql'
 
 import { Generator } from '../types'
+import { renderMainMethodFields, renderMainSubscriptionMethodFields } from './graphcool-js'
 
 export const generator: Generator = {
   Main: renderMainMethod,
@@ -44,6 +45,10 @@ ${renderMainMethodFields('query', queryType.getFields())}
       
     this.mutation = {
 ${renderMainMethodFields('mutation', mutationType.getFields())}
+    }`: ''}${subscriptionType ? `
+      
+    this.subscription = {
+${renderMainSubscriptionMethodFields('mutation', subscriptionType.getFields())}
     }`: ''}
   }
   
@@ -53,11 +58,3 @@ ${renderMainMethodFields('mutation', mutationType.getFields())}
 }`
 }
 
-function renderMainMethodFields(operation: string, fields: GraphQLFieldMap<any, any>): string {
-  return Object.keys(fields).map(f => {
-    const field = fields[f]
-    return `      ${field.name}(args, info) { 
-        return self.delegate('${operation}', '${field.name}', args, {}, info)
-      }`
-  }).join(',\n')
-}

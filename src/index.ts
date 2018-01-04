@@ -45,7 +45,11 @@ ${Object.keys(generators).map(k => `'${k}`).join(', ')}`)
     if (generator.RootType) {
       generatedClass.push(generator.RootType(ast.getQueryType()))
       if (ast.getMutationType()) { generatedClass.push(generator.RootType(ast.getMutationType()!)) }
-      if (ast.getSubscriptionType()) { generatedClass.push(generator.RootType(ast.getSubscriptionType()!)) }
+    }
+
+    // Special case 5: subscription type
+    if (generator.SubscriptionType) {
+      if (ast.getSubscriptionType()) { generatedClass.push(generator.SubscriptionType(ast.getSubscriptionType()!)) }
     }
 
     // Special case 3: the main method
