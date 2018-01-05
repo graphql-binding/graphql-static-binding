@@ -45,7 +45,7 @@
     "graphql": "0.12.3"
   },
   "devDependencies": {
-    "@types/cucumber": "3.2.0",
+    "@types/cucumber": "3.2.1",
     "@types/graphql": "0.11.7",
     "@types/node": "8.5.2",
     "coveralls": "3.0.0",
