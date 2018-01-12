@@ -123,7 +123,7 @@ export function renderMainSubscriptionMethodFields(fields: GraphQLFieldMap<any, 
   return Object.keys(fields)
     .map(f => {
       const field = fields[f]
-      return `    ${field.name}: (args, infoOrQuery): Promise<AsyncIterator<${renderFieldType(field.type)}>> => super.delegateSubscription('${field.name}', args, infoOrQuery)`
+      return `    ${field.name}: (args, infoOrQuery): Promise<AsyncIterator<${renderFieldType(field.type)}>> => super.delegateSubscription('${field.name}', args, {}, infoOrQuery)`
     })
     .join(',\n')
 }
@@ -237,11 +237,11 @@ function renderInputObjectType(
   return renderInterfaceWrapper(type.name, type.description, interfaces, fieldDefinition)
 }
 
-function renderFieldName(field: GraphQLInputField | GraphQLField<any, any>) {
+export function renderFieldName(field: GraphQLInputField | GraphQLField<any, any>) {
   return `${field.name}${isNonNullType(field.type) ? '' : '?'}`
 }
 
-function renderFieldType(type: GraphQLInputType | GraphQLOutputType) {
+export function renderFieldType(type: GraphQLInputType | GraphQLOutputType) {
   if (isNonNullType(type)) {
     return renderFieldType((type as GraphQLWrappingType).ofType)
   }
@@ -295,7 +295,7 @@ ${fieldDefinition}
 }`
 }
 
-function renderTypeWrapper(typeName: string, typeDescription: string, fieldDefinition: string): string {
+export function renderTypeWrapper(typeName: string, typeDescription: string, fieldDefinition: string): string {
   return `${renderDescription(typeDescription)}export type ${typeName} = {
 ${fieldDefinition}
 }`
