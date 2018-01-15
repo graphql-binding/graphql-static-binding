@@ -6802,5 +6802,7 @@ input ViewsWhereUniqueInput {
 
 fs.writeFileSync('./testGraphcoolBinding.ts', generateCode(schema, generators['graphcool-ts']))
 fs.writeFileSync('./testGraphcoolBinding.js', generateCode(schema, generators['graphcool-js']))
+fs.writeFileSync('./testPrismaBinding.ts', generateCode(schema, generators['prisma-ts']))
+fs.writeFileSync('./testPrismaBinding.js', generateCode(schema, generators['prisma-js']))
 fs.writeFileSync('./testBinding.ts', generateCode(schema, generators['binding-ts']))
 fs.writeFileSync('./testBinding.js', generateCode(schema, generators['binding-js']))
