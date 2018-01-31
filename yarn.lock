@@ -60,9 +60,9 @@
     into-stream "^3.1.0"
     lodash "^4.17.4"
 
-"@types/cucumber@3.2.1":
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/@types/cucumber/-/cucumber-3.2.1.tgz#4269502cc1f8cc4b4bfe4fe4bc3bbe19226600bb"
+"@types/cucumber@3.2.2":
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/@types/cucumber/-/cucumber-3.2.2.tgz#4707983d840e8d09885d400d770e33ff06eeb2a2"
 
 "@types/graphql@0.12.3":
   version "0.12.3"
