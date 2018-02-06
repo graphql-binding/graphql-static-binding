@@ -5,6 +5,7 @@ Feature for Graphcool Typescript generator
   Scenario: Scenario name
     Given a schema looking like this:
       """
+      # The `Query` type
       type Query {
         posts: [String]
       }
@@ -17,6 +18,7 @@ Feature for Graphcool Typescript generator
       import { GraphQLResolveInfo } from 'graphql'
 
       const typeDefs = `
+      # The 'Query' type
       type Query {
         posts: [String]
       }`

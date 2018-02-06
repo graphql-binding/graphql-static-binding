@@ -6,6 +6,19 @@ import { Generator } from './types'
 
 export { Generator } from './types'
 
+/**
+ * The schema contains incompatible characters sometimes, e.g.
+ * data types in comments are emphasized with "`", which represents
+ * template strings in ES2015 and TypeScript. This function
+ * replaces those characters with sane defaults.
+ *
+ * @param schema {String} The serialized schema
+ * @returns {String}
+ *
+ */
+const sanitizeSchema = (schema: string) =>
+    schema.replace(/\`/g, '\'')
+
 export function generateCode(schema: string, generator: Generator | string): string {
     if (typeof generator === 'string'){
       generator = generators[generator] || require(generator).generator
@@ -14,6 +27,8 @@ export function generateCode(schema: string, generator: Generator | string): str
 ${Object.keys(generators).map(k => `'${k}`).join(', ')}`)
       }
     }
+
+    schema = sanitizeSchema(schema);
 
     const document: DocumentNode = parse(schema, { noLocation: true })
     const ast: GraphQLSchema = buildASTSchema(document)
