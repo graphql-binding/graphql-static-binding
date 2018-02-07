@@ -26,7 +26,7 @@ function renderHeader(schema: string): string {
   return `import { Prisma as BasePrisma, BasePrismaOptions } from 'prisma-binding'
 import { GraphQLResolveInfo } from 'graphql'
 
-const typeDefs = \`
+export const typeDefs = \`
 ${schema}\``
 }
 
