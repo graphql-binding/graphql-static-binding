@@ -41,7 +41,7 @@
     "instrument": true
   },
   "dependencies": {
-    "cucumber-html-reporter": "^3.0.4"
+    "cucumber-html-reporter": "^4.0.0"
   },
   "devDependencies": {
     "@types/cucumber": "3.2.2",
