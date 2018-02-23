@@ -41,8 +41,7 @@
     "instrument": true
   },
   "dependencies": {
-    "cucumber-html-reporter": "^3.0.4",
-    "graphql": "0.13.1"
+    "cucumber-html-reporter": "^3.0.4"
   },
   "devDependencies": {
     "@types/cucumber": "3.2.2",
@@ -50,10 +49,14 @@
     "@types/node": "9.4.6",
     "coveralls": "3.0.0",
     "cucumber": "3.2.1",
+    "graphql": "0.13.1",
     "nyc": "11.4.1",
     "semantic-release": "12.4.1",
     "ts-node": "5.0.0",
     "typescript": "2.7.2"
+  },
+  "peerDependencies": {
+    "graphql": "^0.11.0 || ^0.12.0 || ^0.13.0"
   },
   "repository": {
     "type": "git",
