@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/graphql-cli-prepare
     docker:
-      - image: circleci/node:latest
+      - image: circleci/node:latest@sha256:11ec281fcfb7c92a0492691459f6971cd4a41af67fedb4778a6a05922028ad0b
     steps:
       - checkout
       - run:
